@@ -1,8 +1,10 @@
 package common
 
 import (
-	"net/http"
+	"CronJob/master/defs"
+	"encoding/json"
 	"io"
+	"net/http"
 )
 
 // 定时任务
@@ -18,9 +20,13 @@ type Response struct {
 	Data  interface{} `json:"data"`
 }
 
-
-
 func SendResponse(w http.ResponseWriter, resp string, sc int) {
 	w.WriteHeader(sc)
 	io.WriteString(w, resp)
+}
+
+func SendErrorResponse(w http.ResponseWriter, errResp defs.ErrorResponse) {
+	w.WriteHeader(errResp.HttpSC)
+	resStr, _ := json.Marshal(&errResp.Error)
+	io.WriteString(w, string(resStr))
 }

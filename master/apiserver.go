@@ -1,12 +1,13 @@
 package master
 
 import (
-	"net/http"
-	"net"
-	"strconv"
-	"fmt"
 	"CronJob/common"
+	"CronJob/master/defs"
 	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -22,12 +23,22 @@ type ApiServer struct {
 
 func InitApiServer() (err error) {
 	var (
-		mux        *http.ServeMux
-		listener   net.Listener
-		httpServer *http.Server
+		mux           *http.ServeMux
+		listener      net.Listener
+		httpServer    *http.Server
+		staticDir     http.Dir
+		staticHandler http.Handler
 	)
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save", handleJobSave)
+	mux.HandleFunc("/job/delete", handleJobDelete)
+	mux.HandleFunc("/job/list", handleJobList)
+	mux.HandleFunc("/job/kill", handleJobKill)
+
+	// 静态资源目录
+	staticDir = http.Dir(Global.Webroot)
+	staticHandler = http.FileServer(staticDir)
+	mux.Handle("/", http.StripPrefix("/", staticHandler))
 
 	if listener, err = net.Listen("tcp", ":"+strconv.Itoa(Global.ApiPort)); err != nil {
 		fmt.Printf("listen failed: %v", err)
@@ -48,32 +59,90 @@ func InitApiServer() (err error) {
 }
 
 // 保存任务接口
+// POST /job/save job={json}
 func handleJobSave(w http.ResponseWriter, r *http.Request) {
 	var (
 		err     error
 		postjob string
 		job     common.Job
 		oldJob  *common.Job
-		bytes []byte
+		bytes   []byte
 	)
-	if r.ParseForm(); err != nil{
-		fmt.Printf("parse form failed: %v\n", err)
+	if r.ParseForm(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
 	postjob = r.PostForm.Get("job")
-	if err = json.Unmarshal([]byte(postjob), &job); err != nil{
-		fmt.Printf("unmarshal postjob failed: %v\n", err)
+	if err = json.Unmarshal([]byte(postjob), &job); err != nil {
+		common.SendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
+	if oldJob, err = G_jobMgr.SaveJob(&job); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	if bytes, err = json.Marshal(oldJob); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	common.SendResponse(w, string(bytes), http.StatusCreated)
+}
 
-	if oldJob, err = G_jobMgr.SaveJob(&job); err != nil{
-		fmt.Printf("save job failed: %v\n", err)
+// 删除任务接口
+// POST /job/delete name=job
+func handleJobDelete(w http.ResponseWriter, r *http.Request) {
+	var (
+		err    error
+		name   string
+		oldjob *common.Job
+		bytes  []byte
+	)
+	if err = r.ParseForm(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
+	name = r.PostForm.Get("name")
+	if oldjob, err = G_jobMgr.DelJob(name); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	if bytes, err = json.Marshal(oldjob); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	common.SendResponse(w, string(bytes), http.StatusOK)
+}
 
-	if bytes, err = json.Marshal(oldJob); err != nil{
-		fmt.Printf("marshal oldjob failed: %v\n", err)
+// 列出所有任务接口
+//
+func handleJobList(w http.ResponseWriter, r *http.Request) {
+	var (
+		err     error
+		jobList []*common.Job
+		bytes   []byte
+	)
+	if jobList, err = G_jobMgr.ListJob(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+	}
+	if bytes, err = json.Marshal(jobList); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+	}
+	common.SendResponse(w, string(bytes), http.StatusOK)
+}
+
+func handleJobKill(w http.ResponseWriter, r *http.Request) {
+	var (
+		err  error
+		name string
+	)
+	if err = r.ParseForm(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
-	common.SendResponse(w,string(bytes),http.StatusCreated)
+	name = r.PostForm.Get("name")
+	if err = G_jobMgr.KillJob(name); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	common.SendResponse(w, "success", http.StatusOK)
 }
