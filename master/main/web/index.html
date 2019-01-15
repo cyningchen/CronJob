@@ -215,7 +215,7 @@
             var jobInfo = {
                 name: $('#edit-name').val(),
                 command: $('#edit-command').val(),
-                cronExpr: $('#edit-cronExpr').val()
+                cron_expr: $('#edit-cronExpr').val()
             }
             $.ajax({
                 url: '/job/save',
@@ -309,15 +309,8 @@
                 url: '/job/list',
                 dataType: 'json',
                 success: function (resp) {
-                    console.log("123")
-                    if (resp.errno != 0) {  // 服务端出错了
-                        console.log("456")
-                        return
-                    }
-                    console.log("789")
-                    console.log(resp.data)
                     // 任务数组
-                    var jobList = resp.data
+                    var jobList = resp
                     // 清理列表
                     $('#job-list tbody').empty()
                     // 遍历任务, 填充table
@@ -326,7 +319,7 @@
                         var tr = $("<tr>")
                         tr.append($('<td class="job-name">').html(job.name))
                         tr.append($('<td class="job-command">').html(job.command))
-                        tr.append($('<td class="job-cronExpr">').html(job.cronExpr))
+                        tr.append($('<td class="job-cronExpr">').html(job.cron_expr))
                         var toolbar = $('<div class="btn-toolbar">')
                                 .append('<button class="btn btn-info edit-job">编辑</button>')
                                 .append('<button class="btn btn-danger delete-job">删除</button>')
