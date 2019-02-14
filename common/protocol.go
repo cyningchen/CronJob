@@ -29,9 +29,25 @@ type Response struct {
 	Data  interface{} `json:"data"`
 }
 
+// 变化事件
 type JobEvent struct {
 	EventType int // save delete
 	Job       *Job
+}
+
+type JobExecuteInfo struct {
+	Job      *Job
+	PlanTime time.Time
+	RealTime time.Time
+}
+
+// 任务执行结果
+type JobExecuteResult struct {
+	ExecuteInfo *JobExecuteInfo
+	Output      []byte
+	Err         error
+	StartTime   time.Time
+	EndTime     time.Time
 }
 
 func SendResponse(w http.ResponseWriter, resp string, sc int) {
@@ -81,6 +97,15 @@ func BuildJobSchedulerPlan(job *Job) (jobSchedulePlan *JobSchedulerPlan, err err
 		Job:      job,
 		Expr:     expr,
 		NextTime: expr.Next(time.Now()),
+	}
+	return
+}
+
+func BuildJonExecuteInfo(plan *JobSchedulerPlan) (jobExecuteInfo *JobExecuteInfo) {
+	jobExecuteInfo = &JobExecuteInfo{
+		Job:      plan.Job,
+		PlanTime: plan.NextTime,
+		RealTime: time.Now(),
 	}
 	return
 }

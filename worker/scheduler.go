@@ -8,8 +8,10 @@ import (
 
 // 任务调度
 type Scheduler struct {
-	jobEventChan chan *common.JobEvent               //  etcd任务事件队列
-	jobPlanTable map[string]*common.JobSchedulerPlan // 任务调度计划表
+	jobEventChan      chan *common.JobEvent               //  etcd任务事件队列
+	jobPlanTable      map[string]*common.JobSchedulerPlan // 任务调度计划表
+	jobExecutingTable map[string]*common.JobExecuteInfo   // 任务执行表
+	JobResultChan     chan *common.JobExecuteResult       // 任务执行结果队列
 }
 
 var (
@@ -36,8 +38,39 @@ func (scheduler *Scheduler) handleJobEvent(jobEvent *common.JobEvent) {
 	}
 }
 
-// 重新计算任务调度状态
+// 处理任务结果
+func (scheduler *Scheduler) handleJobResult(jobResult *common.JobExecuteResult) {
+	// 删除执行状态
+	delete(scheduler.jobExecutingTable, jobResult.ExecuteInfo.Job.Name)
 
+	fmt.Println("任务执行完成", jobResult.ExecuteInfo.Job.Name, jobResult.Output, jobResult.Err)
+}
+
+// 尝试执行任务
+func (scheduler *Scheduler) TryStartJob(jobPlan *common.JobSchedulerPlan) {
+	// 调度和执行是两件事
+	var (
+		jobExecuteInfo *common.JobExecuteInfo
+		jobExecuting   bool
+	)
+
+	if jobExecuteInfo, jobExecuting = scheduler.jobExecutingTable[jobPlan.Job.Name]; jobExecuting {
+		fmt.Println("尚未退出，跳过执行:", jobPlan.Job.Name)
+		return
+	}
+	// 构建执行状态信息
+	jobExecuteInfo = common.BuildJonExecuteInfo(jobPlan)
+
+	// 保存执行状态
+	scheduler.jobExecutingTable[jobPlan.Job.Name] = jobExecuteInfo
+
+	// 执行任务
+	fmt.Println("执行任务", jobExecuteInfo.Job.Name, jobExecuteInfo.PlanTime, jobExecuteInfo.RealTime)
+	G_executor.ExecuteJob(jobExecuteInfo)
+	return
+}
+
+// 重新计算任务调度状态
 func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	var (
 		jobPlan  *common.JobSchedulerPlan
@@ -57,9 +90,9 @@ func (scheduler *Scheduler) TrySchedule() (scheduleAfter time.Duration) {
 	// 遍历所有任务
 	for _, jobPlan = range scheduler.jobPlanTable {
 		if jobPlan.NextTime.Before(now) || jobPlan.NextTime.Equal(now) {
-			fmt.Println("执行任务:", jobPlan.Job.Name)
+			scheduler.TryStartJob(jobPlan)
+			jobPlan.NextTime = jobPlan.Expr.Next(now) // 更新下次执行时间
 		}
-		jobPlan.NextTime = jobPlan.Expr.Next(now) // 更新下次执行时间
 
 		// 统计最近一个要过期的任务时间
 		if nearTime == nil || jobPlan.NextTime.Before(*nearTime) {
@@ -77,6 +110,7 @@ func (scheduler *Scheduler) scheduleLoop() {
 		jobEvent      *common.JobEvent
 		scheduleAfter time.Duration
 		scheduleTimer *time.Timer
+		jobResult     *common.JobExecuteResult
 	)
 
 	// 初始化一次(1秒)
@@ -96,6 +130,8 @@ func (scheduler *Scheduler) scheduleLoop() {
 			scheduleAfter = scheduler.TrySchedule()
 			// 重置调度间隔
 			scheduleTimer.Reset(scheduleAfter)
+		case jobResult = <-scheduler.JobResultChan:
+			scheduler.handleJobResult(jobResult)
 		}
 	}
 }
@@ -108,8 +144,10 @@ func (scheduler *Scheduler) PushJobEvent(jobEvent *common.JobEvent) {
 // 初始化调度器
 func InitScheduler() (err error) {
 	G_scheduler = &Scheduler{
-		jobEventChan: make(chan *common.JobEvent, 1000),
-		jobPlanTable: make(map[string]*common.JobSchedulerPlan),
+		jobEventChan:      make(chan *common.JobEvent, 1000),
+		jobPlanTable:      make(map[string]*common.JobSchedulerPlan),
+		jobExecutingTable: make(map[string]*common.JobExecuteInfo),
+		JobResultChan:     make(chan *common.JobExecuteResult, 1000),
 	}
 	// 启动调度协程
 	go G_scheduler.scheduleLoop()

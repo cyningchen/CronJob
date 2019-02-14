@@ -15,6 +15,11 @@ func main() {
 		fmt.Println("init config failed, ", err)
 	}
 
+	// 启动执行器
+	if err = worker.InitExecutor(); err != nil {
+		fmt.Println("init executor failed, ", err)
+	}
+
 	if err = worker.InitScheduler(); err != nil {
 		fmt.Println("init scheduler failed, ", err)
 	}
