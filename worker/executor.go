@@ -43,7 +43,7 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 		} else {
 			// 执行shell命令
 			result.StartTime = time.Now() // 上锁成功重置任务启动时间
-			cmd = exec.CommandContext(context.TODO(), "/bin/bash", "-c", info.Job.Command)
+			cmd = exec.CommandContext(info.CancelCtx, "/bin/bash", "-c", info.Job.Command)
 			output, err = cmd.CombinedOutput()
 			result.EndTime = time.Now()
 			result.Output = output
