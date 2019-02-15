@@ -43,7 +43,7 @@ func (scheduler *Scheduler) handleJobResult(jobResult *common.JobExecuteResult) 
 	// 删除执行状态
 	delete(scheduler.jobExecutingTable, jobResult.ExecuteInfo.Job.Name)
 
-	fmt.Println("任务执行完成", jobResult.ExecuteInfo.Job.Name, jobResult.Output, jobResult.Err)
+	fmt.Println("任务执行完成", jobResult.ExecuteInfo.Job.Name, string(jobResult.Output), jobResult.Err)
 }
 
 // 尝试执行任务

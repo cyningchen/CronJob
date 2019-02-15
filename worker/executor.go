@@ -48,9 +48,9 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 			result.EndTime = time.Now()
 			result.Output = output
 			result.Err = err
-			// 任务执行完成后，把执行的结果返回给scheduler。 scheduler从executingTable中删除执行记录。
-			G_scheduler.PushJobResult(result)
 		}
+		// 任务执行完成后，把执行的结果返回给scheduler。 scheduler从executingTable中删除执行记录。
+		G_scheduler.PushJobResult(result)
 	}()
 }
 
