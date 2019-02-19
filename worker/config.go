@@ -13,8 +13,12 @@ var (
 
 // 程序配置
 type Config struct {
-	EtcdEndpoints   []string `json:"etcdEndpoints"`
-	EtcdDialTimeout int      `json:"etcdDialTimeout"`
+	EtcdEndpoints       []string `json:"etcdEndpoints"`
+	EtcdDialTimeout     int      `json:"etcdDialTimeout"`
+	MongodbUri          string   `json:"mongodbUri"`
+	MongodbTimeout      int      `json:"mongodbTimeout"`
+	JobLogBatchSize     int      `json:"jobLogBatchSize"`
+	JobLogCommitTimeout int      `json:"jobLogCommitTimeout"`
 }
 
 func InitConfig(filename string) (err error) {

@@ -53,6 +53,22 @@ type JobExecuteResult struct {
 	EndTime     time.Time
 }
 
+// 任务执行日志
+type JobLog struct {
+	JobName      string `bson:"jobName"`
+	Command      string `bson:"command"`
+	Err          string `bson:"err"`
+	Output       string `bson:"output"`
+	PlanTime     int64  `bson:"planTime"`
+	ScheduleTime int64  `bson:"scheduleTime"`
+	StartTime    int64  `bson:"startTime"`
+	EndTime      int64  `bson:"endTime"`
+}
+
+type LogBatch struct {
+	Logs []interface{} // 多条日志
+}
+
 func SendResponse(w http.ResponseWriter, resp string, sc int) {
 	w.WriteHeader(sc)
 	io.WriteString(w, resp)
