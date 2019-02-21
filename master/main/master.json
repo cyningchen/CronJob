@@ -4,5 +4,6 @@
   "apiWriteTimeout": 5000,
   "etcdEndpoints":["139.196.90.101:2379"],
   "etcdDialTimeout":5000,
+  "mongodbUri": "mongodb://139.196.90.101:5401",
   "webroot":"./web"
 }

@@ -25,6 +25,7 @@ func main() {
 		fmt.Println("init executor failed, ", err)
 	}
 
+	// 启动调度器
 	if err = worker.InitScheduler(); err != nil {
 		fmt.Println("init scheduler failed, ", err)
 	}

@@ -19,6 +19,7 @@ type Config struct {
 	EtcdEndpoints   []string `json:"etcdEndpoints"`
 	EtcdDialTimeout int      `json:"etcdDialTimeout"`
 	Webroot         string   `json:"webroot"`
+	MongodbUri      string   `json:"mongodbUri"`
 }
 
 func InitConfig(filename string) (err error) {

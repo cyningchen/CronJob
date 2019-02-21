@@ -34,6 +34,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
+	mux.HandleFunc("/job/log", handleJobLog)
 
 	// 静态资源目录
 	staticDir = http.Dir(Global.Webroot)
@@ -145,4 +146,39 @@ func handleJobKill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	common.SendResponse(w, "success", http.StatusOK)
+}
+
+// 查询任务日志
+func handleJobLog(w http.ResponseWriter, r *http.Request) {
+	var (
+		err        error
+		name       string
+		skipParam  string
+		limitParam string
+		skip       int64
+		limit      int64
+		logArr     []*common.JobLog
+		bytes      []byte
+	)
+	if err = r.ParseForm(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
+		return
+	}
+	name = r.Form.Get("name")
+	skipParam = r.Form.Get("skip")
+	limitParam = r.Form.Get("limit")
+	if skip, err = strconv.ParseInt(skipParam, 10, 64); err != nil {
+		skip = 0
+	}
+	if limit, err = strconv.ParseInt(limitParam, 10, 64); err != nil {
+		limit = 20
+	}
+	if logArr, err = G_logMgr.ListLog(name, skip, limit); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+		return
+	}
+	if bytes, err = json.Marshal(logArr); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+	}
+	common.SendResponse(w, string(bytes), http.StatusOK)
 }

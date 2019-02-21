@@ -14,6 +14,11 @@ func main() {
 	if err = master.InitConfig(master.ConfFile); err != nil {
 		fmt.Println("init config failed, ", err)
 	}
+	// 日志管理器
+	if err = master.InitLogMgr(); err != nil {
+		fmt.Println("init log mgr failed, ", err)
+	}
+
 	// 任务管理器
 	if err = master.InitJobMgr(); err != nil {
 		fmt.Println("init job mgr failed, ", err)
@@ -22,7 +27,7 @@ func main() {
 	if err := master.InitApiServer(); err != nil {
 		fmt.Println("init apiserver failed: ", err)
 	}
-	for{
-		time.Sleep(5*time.Second)
+	for {
+		time.Sleep(5 * time.Second)
 	}
 }
