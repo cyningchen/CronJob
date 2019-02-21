@@ -71,9 +71,13 @@ func (logSink *LogSink) writeLoop() {
 
 func InitLogSink() (err error) {
 	var (
-		client *mongo.Client
+		client  *mongo.Client
+		timeout time.Duration
 	)
-	if client, err = mongo.Connect(context.TODO(), &options.ClientOptions{Hosts: []string{Global.MongodbUri}}); err != nil {
+	timeout = time.Duration(Global.MongodbTimeout) * time.Millisecond
+	if client, err = mongo.Connect(context.TODO(), &options.ClientOptions{
+		Hosts:          []string{Global.MongodbUri},
+		ConnectTimeout: &timeout}); err != nil {
 		return
 	}
 	G_logSink = &LogSink{

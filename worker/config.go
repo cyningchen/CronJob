@@ -16,7 +16,7 @@ type Config struct {
 	EtcdEndpoints       []string `json:"etcdEndpoints"`
 	EtcdDialTimeout     int      `json:"etcdDialTimeout"`
 	MongodbUri          string   `json:"mongodbUri"`
-	MongodbTimeout      int      `json:"mongodbTimeout"`
+	MongodbTimeout      int      `json:"mongodbConnectTimeout"`
 	JobLogBatchSize     int      `json:"jobLogBatchSize"`
 	JobLogCommitTimeout int      `json:"jobLogCommitTimeout"`
 }
