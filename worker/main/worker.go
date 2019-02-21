@@ -15,6 +15,11 @@ func main() {
 		fmt.Println("init config failed, ", err)
 	}
 
+	// 服务注册
+	if err = worker.InitRegister(); err != nil {
+		fmt.Println("init register failed, ", err)
+	}
+
 	// 启动日志协程
 	if err = worker.InitLogSink(); err != nil {
 		fmt.Println("init logsink failed, ", err)
