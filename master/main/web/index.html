@@ -248,11 +248,13 @@
                 dataType: 'json',
                 data: {name: jobName},
                 success: function (resp) {
-                    if (resp.errno != 0) {
-                        return
-                    }
+                    //if (resp.errno != 0) {
+                    //    return
+                    //}
                     // 遍历日志
-                    var logList = resp.data
+                    //var logList = resp.data
+		    //console.log(resp)
+                    var logList = resp
                     for (var i = 0; i < logList.length; ++i) {
                         var log = logList[i]
                         var tr = $('<tr>')

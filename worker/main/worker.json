@@ -1,7 +1,7 @@
 {
   "etcdEndpoints":["139.196.90.101:2379"],
   "etcdDialTimeout":5000,
-  "mongodbUri": "mongodb://139.196.90.101:5401",
+  "mongodbUri": "139.196.90.101:5401",
   "mongodbConnectTimeout": 5000,
   "mongodbTimeout": 5000,
   "jobLogBatchSize": 100,
