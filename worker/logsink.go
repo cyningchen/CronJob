@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"time"
 )
 
@@ -72,7 +73,7 @@ func InitLogSink() (err error) {
 	var (
 		client *mongo.Client
 	)
-	if client, err = mongo.Connect(context.TODO(), Global.MongodbUri); err != nil {
+	if client, err = mongo.Connect(context.TODO(), &options.ClientOptions{Hosts: []string{Global.MongodbUri}}); err != nil {
 		return
 	}
 	G_logSink = &LogSink{
