@@ -2,6 +2,7 @@ package worker
 
 import (
 	"CronJob/common"
+	"math/rand"
 	"os/exec"
 	"time"
 )
@@ -33,6 +34,9 @@ func (executor *Executor) ExecuteJob(info *common.JobExecuteInfo) {
 		jobLock = G_jobMgr.CreateJobLock(info.Job.Name)
 
 		result.StartTime = time.Now()
+
+		// 随机睡眠
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
 		err = jobLock.TryLock()
 		defer jobLock.Unlock() // 任务执行完成，释放锁
