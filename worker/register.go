@@ -46,6 +46,7 @@ func (register *Register) KeepOnline() {
 		leaseGrantResp *clientv3.LeaseGrantResponse
 		leaseId        clientv3.LeaseID
 		keepRespChan   <-chan *clientv3.LeaseKeepAliveResponse
+		keepResp       *clientv3.LeaseKeepAliveResponse
 		cancelCtx      context.Context
 		cancelFunc     context.CancelFunc
 	)
@@ -68,21 +69,14 @@ func (register *Register) KeepOnline() {
 			goto RETRY
 		}
 		// 处理续租应答协程
-		go func() {
-			var (
-				keepResp *clientv3.LeaseKeepAliveResponse
-			)
-			for {
-				select {
-				case keepResp = <-keepRespChan:
-					if keepResp == nil {
-						goto END
-					}
+		for {
+			select {
+			case keepResp = <-keepRespChan:
+				if keepResp == nil {
+					goto RETRY
 				}
 			}
-		END:
-		}()
-
+		}
 	RETRY:
 		if cancelFunc != nil {
 			cancelFunc()
