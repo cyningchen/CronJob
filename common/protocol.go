@@ -55,7 +55,7 @@ type JobExecuteResult struct {
 
 // 任务执行日志
 type JobLog struct {
-	JobName      string `json:"jobName" bson:"jobName"` 
+	JobName      string `json:"jobName" bson:"jobName"`
 	Command      string `json:"command" bson:"command"`
 	Err          string `json:"err" bson:"err"`
 	Output       string `json:"output" bson:"output"`
@@ -142,4 +142,9 @@ func BuildJonExecuteInfo(plan *JobSchedulerPlan) (jobExecuteInfo *JobExecuteInfo
 	}
 	jobExecuteInfo.CancelCtx, jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
 	return
+}
+
+// 提取worker ip
+func ExtractWorkerName(workerKey string) string {
+	return strings.TrimPrefix(workerKey, JOB_WORKER_DIR)
 }

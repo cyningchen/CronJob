@@ -14,6 +14,12 @@ func main() {
 	if err = master.InitConfig(master.ConfFile); err != nil {
 		fmt.Println("init config failed, ", err)
 	}
+
+	//  初始化服务发现
+	if err = master.InitWorkerMgr(); err != nil {
+		fmt.Println("init worker mgr failed, ", err)
+	}
+
 	// 日志管理器
 	if err = master.InitLogMgr(); err != nil {
 		fmt.Println("init log mgr failed, ", err)

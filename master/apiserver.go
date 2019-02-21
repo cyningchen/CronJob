@@ -35,6 +35,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
 	mux.HandleFunc("/job/log", handleJobLog)
+	mux.HandleFunc("/worker/list", handleWorkerList)
 
 	// 静态资源目录
 	staticDir = http.Dir(Global.Webroot)
@@ -178,6 +179,21 @@ func handleJobLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if bytes, err = json.Marshal(logArr); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+	}
+	common.SendResponse(w, string(bytes), http.StatusOK)
+}
+
+func handleWorkerList(w http.ResponseWriter, r *http.Request) {
+	var (
+		err       error
+		workerArr []string
+		bytes     []byte
+	)
+	if workerArr, err = G_workerMgr.ListWorkers(); err != nil {
+		common.SendErrorResponse(w, defs.ErrorInternalFault)
+	}
+	if bytes, err = json.Marshal(workerArr); err != nil {
 		common.SendErrorResponse(w, defs.ErrorInternalFault)
 	}
 	common.SendResponse(w, string(bytes), http.StatusOK)
