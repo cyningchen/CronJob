@@ -5,26 +5,14 @@ import (
 	"CronJob/master/defs"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-var (
-	// 单例对象
-	G_apiServer *ApiServer
-)
-
-// 任务的HTTP接口
-type ApiServer struct {
-	HttpServer *http.Server
-}
-
 func InitApiServer() (err error) {
 	var (
 		mux           *http.ServeMux
-		listener      net.Listener
 		httpServer    *http.Server
 		staticDir     http.Dir
 		staticHandler http.Handler
@@ -42,20 +30,13 @@ func InitApiServer() (err error) {
 	staticHandler = http.FileServer(staticDir)
 	mux.Handle("/", http.StripPrefix("/", staticHandler))
 
-	if listener, err = net.Listen("tcp", ":"+strconv.Itoa(Global.ApiPort)); err != nil {
-		fmt.Printf("listen failed: %v", err)
-		return
-	}
-
 	httpServer = &http.Server{
+		Addr:         ":" + strconv.Itoa(Global.ApiPort),
 		ReadTimeout:  time.Duration(Global.ApiReadTimeout) * time.Millisecond,
 		WriteTimeout: time.Duration(Global.ApiWriteTimeout) * time.Millisecond,
 		Handler:      mux,
 	}
-	G_apiServer = &ApiServer{
-		HttpServer: httpServer,
-	}
-	go httpServer.Serve(listener)
+	go httpServer.ListenAndServe()
 	fmt.Println("http server is running....")
 	return
 }

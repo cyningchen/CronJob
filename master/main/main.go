@@ -2,6 +2,7 @@ package main
 
 import (
 	"CronJob/master"
+	"CronJob/master/thrift"
 	"fmt"
 	"time"
 )
@@ -30,10 +31,14 @@ func main() {
 		fmt.Println("init job mgr failed, ", err)
 	}
 
+	// thrift rpc
+	go thrift.InitRpcServer()
+
 	if err := master.InitApiServer(); err != nil {
 		fmt.Println("init apiserver failed: ", err)
 	}
 	for {
 		time.Sleep(5 * time.Second)
 	}
+
 }
